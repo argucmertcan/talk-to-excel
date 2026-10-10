@@ -31,3 +31,10 @@ body {
 @keyframes gridIn { from { opacity: .35; } to { opacity: 1; } }
 @keyframes cellIn { from { opacity: 0; transform: translateX(14px); background: rgb(34 197 94 / .35); } to { opacity: 1; transform: none; } }
 @keyframes headPulse { 0% { background: rgb(34 197 94 / .45); color: white; } 100% { background: transparent; } }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .app-shell, .report-actions { display: none !important; }
+  .report-overlay { position: static !important; background: white !important; overflow: visible !important; backdrop-filter: none !important; }
+  .report-paper { box-shadow: none !important; width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
+}

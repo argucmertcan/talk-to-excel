@@ -5,10 +5,13 @@ import { DataGrid } from "@/components/DataGrid";
 import { InsightPanel, type InsightState } from "@/components/InsightPanel";
 import { ChatPanel, type ChatMessage } from "@/components/ChatPanel";
 import { ChartPanel } from "@/components/ChartPanel";
+import { ReportView } from "@/components/ReportView";
+import { downloadWorkbook } from "@/lib/export";
+import type { Report } from "@/app/api/report/route";
 import { AnimatePresence, motion } from "framer-motion";
 import { readWorkbook } from "@/lib/workbook";
 import { formatNumber } from "@/lib/format";
-import { profileWorkbook } from "@/lib/profile";
+import { breakdown, monthlySeries, profileWorkbook } from "@/lib/profile";
 import { applyOps, describeOp, withIds, type Op, type View } from "@/lib/ops";
 import { runCommand, type Turn } from "@/lib/assistant";
 import type { Workbook } from "@/lib/types";
@@ -35,6 +38,9 @@ export default function Home() {
   const [focus, setFocus] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [chartHidden, setChartHidden] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [report, setReport] = useState<(Report & { ms?: number }) | null>(null);
+  const [reportError, setReportError] = useState<string | undefined>();
 
   const profile = useMemo(() => (wb ? profileWorkbook(wb) : null), [wb]);
   const sheet = wb?.sheets[active];
@@ -67,8 +73,52 @@ export default function Home() {
     }
   }
 
+  async function openReport() {
+    if (!wb || !profile || !view) return;
+    setReportOpen(true);
+    setReport(null);
+    setReportError(undefined);
+    const res = await fetch("/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        dosya: wb.fileName,
+        donem: profile.dateRange,
+        kpi: profile.kpis,
+        olgular: profile.findings.map((f) => f.fact),
+        veri_kalitesi: profile.quality.map((q) => q.message),
+        icgoruler: insights.insights?.map((i) => `${i.title}: ${i.detail}`) ?? [],
+        sohbet: history.filter((h) => h.role === "assistant").map((h) => h.content).slice(-6),
+      }),
+    }).then((r) => r.json()).catch((e) => ({ error: String(e) }));
+    if (res.error) setReportError(res.error);
+    else setReport(res);
+  }
+
+  const reportDim = useMemo(() => {
+    const main = wb?.sheets.find((x) => x.name === profile?.sheet);
+    const text = main?.columns.filter((c) => c.type === "text") ?? [];
+    return (text.find((c) => /bölge|region|şehir|kategori/i.test(c.name)) ?? text[0])?.name ?? "";
+  }, [wb, profile]);
+
+  function exportExcel() {
+    if (!wb || !view || !profile) return;
+    downloadWorkbook({
+      fileName: wb.fileName.replace(/\.xlsx?$/i, "") + "_analiz.xlsx",
+      report,
+      kpis: profile.kpis,
+      view: { columns: view.columns, rows: view.rows },
+      steps: ops.map(describeOp),
+    });
+  }
+
   async function send(text: string) {
     if (!wb || !sheet || !profile) return;
+    if (/\brapor/i.test(text)) {
+      setMessages((m) => [...m, { role: "user", text }, { role: "assistant", text: "Yönetici raporunu hazırlıyorum…" }]);
+      openReport();
+      return;
+    }
     setTab("sohbet");
     setMessages((m) => [...m, { role: "user", text }]);
     setBusy(true);
@@ -117,7 +167,8 @@ export default function Home() {
   }
 
   return (
-    <main className="flex h-screen flex-col">
+    <>
+    <main className="app-shell flex h-screen flex-col">
       <header className="flex h-16 shrink-0 items-center gap-4 border-b border-line px-6">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink">X</span>
@@ -141,6 +192,12 @@ export default function Home() {
             <span className="ml-auto text-sm text-muted">
               {formatNumber(view?.rows.length ?? 0)} satır · {view?.columns.length} sütun
             </span>
+            <button onClick={exportExcel} className="rounded-xl border border-line px-3 py-2 text-sm text-muted hover:text-white">
+              ⤓ Excel
+            </button>
+            <button onClick={openReport} className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-ink hover:bg-accent-2">
+              Rapor oluştur
+            </button>
           </>
         )}
       </header>
@@ -225,5 +282,21 @@ export default function Home() {
         </section>
       )}
     </main>
+    {reportOpen && wb && sheet && profile && (
+      <ReportView
+        fileName={wb.fileName}
+        report={report}
+        error={reportError}
+        kpis={profile.kpis}
+        monthly={monthlySeries(wb.sheets.find((x) => x.name === profile.sheet)!)}
+        regions={breakdown(wb.sheets.find((x) => x.name === profile.sheet)!, reportDim).slice(0, 8)}
+        dimLabel={reportDim}
+        view={view ? { columns: view.columns, rows: view.rows } : null}
+        steps={ops.map(describeOp)}
+        onClose={() => setReportOpen(false)}
+        onExcel={exportExcel}
+      />
+    )}
+    </>
   );
 }

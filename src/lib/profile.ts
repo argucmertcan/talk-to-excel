@@ -67,16 +67,50 @@ function groupBy(rows: Row[], key: (r: Row) => string | null) {
 const isEmpty = (v: CellValue) => v === null || v === "";
 const YES = new Set(["evet", "var", "true", "1", "yes", "x"]);
 
-export function profileWorkbook(wb: Workbook): Profile {
-  const sheet = mainSheet(wb);
-  const { rows, columns } = sheet;
-  const money_cols = columns.filter((c) => c.kind === "currency");
+/** Ciro, kâr ve tarih sütunlarını adlarından tahmin eder */
+export function keyColumns(sheet: Sheet) {
+  const money_cols = sheet.columns.filter((c) => c.kind === "currency");
   const revenueCol =
     money_cols.find((c) => /ciro|gelir|satış tutarı|tutar/i.test(c.name)) ??
     money_cols.find((c) => !/fiyat|maliyet/i.test(c.name)) ??
     money_cols[0];
   const profitCol = money_cols.find((c) => /kâr|kar\b|profit/i.test(c.name));
-  const dateCol = columns.find((c) => c.type === "date");
+  const dateCol = sheet.columns.find((c) => c.type === "date");
+  return { revenueCol, profitCol, dateCol };
+}
+
+/** Aylık toplam (rapor grafiği için) */
+export function monthlySeries(sheet: Sheet) {
+  const { revenueCol, profitCol, dateCol } = keyColumns(sheet);
+  if (!revenueCol || !dateCol) return [];
+  const out = Array.from({ length: 12 }, (_, m) => ({ ay: MONTHS[m], ciro: 0, kar: 0, n: 0 }));
+  for (const r of sheet.rows) {
+    const d = r[dateCol.name];
+    if (!(d instanceof Date)) continue;
+    const o = out[d.getMonth()];
+    o.ciro += (r[revenueCol.name] as number) || 0;
+    if (profitCol) o.kar += (r[profitCol.name] as number) || 0;
+    o.n++;
+  }
+  return out.filter((o) => o.n > 0);
+}
+
+/** Bir boyuta göre toplam ciro (rapor grafiği için) */
+export function breakdown(sheet: Sheet, dim: string) {
+  const { revenueCol } = keyColumns(sheet);
+  if (!revenueCol) return [];
+  const m = new Map<string, number>();
+  for (const r of sheet.rows) {
+    const k = String(r[dim] ?? "—");
+    m.set(k, (m.get(k) ?? 0) + ((r[revenueCol.name] as number) || 0));
+  }
+  return [...m.entries()].map(([ad, ciro]) => ({ ad, ciro })).sort((a, b) => b.ciro - a.ciro);
+}
+
+export function profileWorkbook(wb: Workbook): Profile {
+  const sheet = mainSheet(wb);
+  const { rows, columns } = sheet;
+  const { revenueCol, profitCol, dateCol } = keyColumns(sheet);
   const textCols = columns.filter((c) => c.type === "text");
   const dims = textCols.filter((c) => {
     const u = new Set(rows.map((r) => r[c.name])).size;
