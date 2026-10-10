@@ -14,7 +14,7 @@ import { runCommand, type Turn } from "../src/lib/assistant";
   let steps: Op[][] = [];
   const history: Turn[] = [];
   for (const message of process.argv.slice(2)) {
-    const r = await runCommand({ base: "http://localhost:3210", message, wb, sheet, rows, steps, history, quality });
+    const r = await runCommand({ base: process.env.BASE ?? "http://localhost:3210", message, wb, sheet, rows, steps, history, quality });
     steps = r.steps;
     console.log(`\n>>> ${message}  (${r.ms} ms, mode=${r.mode}${r.retried ? ", DÜZELTİLDİ" : ""})\n    ${r.reply}`);
     steps.flat().forEach((o) => console.log("    •", describeOp(o)));

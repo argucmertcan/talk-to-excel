@@ -207,6 +207,10 @@ export function applyOps(wb: Workbook, sheet: Sheet, baseRows: Row[], ops: Op[])
           if (!other) throw new Error(`Sayfa bulunamadı: ${op.sheet}`);
           const src = other.columns.find((c) => c.name === op.column);
           if (!src) throw new Error(`"${op.sheet}" sayfasında sütun yok: ${op.column}`);
+          // Hedef gibi özet değerler ham satırlara eklenirse her satırda tekrar eder ve oranlar anlamsızlaşır
+          const keys = rows.map((r) => normalizeTr(String(r[op.key] ?? "")));
+          if (new Set(keys).size < keys.length)
+            throw new Error(`"${op.column}" eklemeden önce "${op.key}" bazında özet (group) gerekiyor`);
           const map = new Map<string, number | CellValue>();
           for (const r of other.rows) {
             const k = normalizeTr(String(r[op.key] ?? ""));
