@@ -19,7 +19,36 @@ const SUGGESTIONS = [
 
 export function ChatPanel({ messages, busy, onSend }: { messages: ChatMessage[]; busy: boolean; onSend: (t: string) => void }) {
   const [text, setText] = useState("");
+  const [rec, setRec] = useState<"idle" | "rec" | "busy">("idle");
+  const recorder = useRef<MediaRecorder | null>(null);
   const end = useRef<HTMLDivElement>(null);
+
+  // Sesli komut: bas-konuş-bırak → Groq Whisper → komut olarak gönder
+  async function toggleMic() {
+    if (rec === "rec") {
+      recorder.current?.stop();
+      return;
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    mr.ondataavailable = (e) => chunks.push(e.data);
+    mr.onstop = async () => {
+      stream.getTracks().forEach((t) => t.stop());
+      setRec("busy");
+      const form = new FormData();
+      form.append("audio", new Blob(chunks, { type: mr.mimeType }));
+      try {
+        const r = await fetch("/api/transcribe", { method: "POST", body: form }).then((r) => r.json());
+        if (r.text) send(r.text);
+      } finally {
+        setRec("idle");
+      }
+    };
+    recorder.current = mr;
+    mr.start();
+    setRec("rec");
+  }
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
@@ -77,9 +106,19 @@ export function ChatPanel({ messages, busy, onSend }: { messages: ChatMessage[];
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Excel'ine bir şey söyle…"
+          placeholder={rec === "rec" ? "Dinliyorum… bitirince 🎙'a tekrar bas" : "Excel'ine bir şey söyle…"}
           className="min-w-0 flex-1 bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted"
         />
+        <button
+          type="button"
+          onClick={toggleMic}
+          disabled={busy || rec === "busy"}
+          title="Sesle komut ver"
+          className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition ${rec === "rec" ? "border-rose-400 bg-rose-500/20 text-rose-200" : "border-line text-muted hover:text-white"}`}
+        >
+          {rec === "rec" && <span className="absolute inset-0 animate-ping rounded-xl border border-rose-400" />}
+          {rec === "busy" ? "…" : "🎙"}
+        </button>
         <button disabled={busy || !text.trim()} className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-ink disabled:opacity-40">
           Gönder
         </button>

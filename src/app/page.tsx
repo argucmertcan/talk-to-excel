@@ -4,12 +4,22 @@ import { Uploader } from "@/components/Uploader";
 import { DataGrid } from "@/components/DataGrid";
 import { InsightPanel, type InsightState } from "@/components/InsightPanel";
 import { ChatPanel, type ChatMessage } from "@/components/ChatPanel";
+import { ChartPanel } from "@/components/ChartPanel";
+import { AnimatePresence, motion } from "framer-motion";
 import { readWorkbook } from "@/lib/workbook";
 import { formatNumber } from "@/lib/format";
 import { profileWorkbook } from "@/lib/profile";
-import { applyOps, describeOp, withIds, type Op } from "@/lib/ops";
+import { applyOps, describeOp, withIds, type Op, type View } from "@/lib/ops";
 import { runCommand, type Turn } from "@/lib/assistant";
 import type { Workbook } from "@/lib/types";
+
+/** Komut sonrası tablonun kayacağı sütun: yeni sütun > renklendirilen sütun > sıralanan sütun */
+function focusOf(ops: Op[]): string | null {
+  for (const o of [...ops].reverse()) if (o.type === "add_column") return o.name;
+  for (const o of [...ops].reverse()) if (o.type === "highlight") return o.column ?? o.conditions[0]?.column ?? null;
+  for (const o of [...ops].reverse()) if (o.type === "sort") return o.column;
+  return null;
+}
 
 export default function Home() {
   const [wb, setWb] = useState<Workbook | null>(null);
@@ -21,6 +31,10 @@ export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [history, setHistory] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
+  const [pulse, setPulse] = useState<number | undefined>(undefined);
+  const [focus, setFocus] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [chartHidden, setChartHidden] = useState(false);
 
   const profile = useMemo(() => (wb ? profileWorkbook(wb) : null), [wb]);
   const sheet = wb?.sheets[active];
@@ -64,6 +78,7 @@ export default function Home() {
         quality: profile.quality.map((q) => q.message),
       });
       setSteps(r.steps);
+      afterChange(r.newOps, view, r.view);
       setMessages((m) => [...m, { role: "assistant", text: r.reply, answer: r.answer, ops: r.newOps.map(describeOp), ms: r.ms }]);
       setHistory((h) => [...h, { role: "user", content: text }, { role: "assistant", content: r.answer ?? r.reply }]);
     } catch (e) {
@@ -71,6 +86,34 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // Komuttan sonra: hangi sütuna odaklanılacak, ne değişti
+  function afterChange(newOps: Op[], before: View | null, after: View) {
+    setFocus(focusOf(newOps));
+    setPulse((p) => (p ?? 0) + 1);
+    setChartHidden(false);
+    const parts: string[] = [];
+    if (before && after.rows.length !== before.rows.length && !after.grouped) parts.push(`${formatNumber(after.rows.length)} satır`);
+    if (after.highlights.size && after.highlights.size !== before?.highlights.size) parts.push(`${formatNumber(after.highlights.size)} satır boyandı`);
+    const added = [...after.newColumns].filter((c) => !before?.newColumns.has(c));
+    if (added.length && !after.grouped) parts.push(`+ ${added.join(", ")}`);
+    if (after.grouped && !before?.grouped) parts.push(`${after.rows.length} gruplu özet`);
+    setToast(parts.join(" · ") || null);
+    setTimeout(() => setToast(null), 3200);
+  }
+
+  function undo() {
+    const next = steps.slice(0, -1);
+    const after = wb && sheet ? applyOps(wb, sheet, baseRows, next.flat()) : null;
+    setSteps(next);
+    if (after) afterChange([], view, after);
+  }
+
+  function reset() {
+    setSteps([]);
+    setPulse((p) => (p ?? 0) + 1);
+    setFocus(null);
   }
 
   return (
@@ -106,16 +149,51 @@ export default function Home() {
           <section className="flex min-w-0 flex-1 flex-col gap-3">
             {ops.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
-                {ops.map((o, i) => (
-                  <span key={i} className="rounded-lg border border-accent/30 bg-accent/10 px-2 py-1 font-mono text-xs text-accent-2">
-                    {describeOp(o)}
-                  </span>
-                ))}
+                <AnimatePresence initial={false}>
+                  {steps.map((step, si) =>
+                    step.map((o, i) => (
+                      <motion.span
+                        key={`${si}-${i}-${describeOp(o)}`}
+                        initial={{ opacity: 0, scale: 0.8, y: -6 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ delay: i * 0.12 }}
+                        className="rounded-lg border border-accent/30 bg-accent/10 px-2 py-1 font-mono text-xs text-accent-2"
+                      >
+                        {describeOp(o)}
+                      </motion.span>
+                    )),
+                  )}
+                </AnimatePresence>
+                <span className="ml-auto flex gap-1.5">
+                  <button onClick={undo} className="rounded-lg border border-line px-2.5 py-1 text-xs text-muted hover:text-white">↶ Geri al</button>
+                  <button onClick={reset} className="rounded-lg border border-line px-2.5 py-1 text-xs text-muted hover:text-white">Sıfırla</button>
+                </span>
               </div>
             )}
             {view.errors.length > 0 && <p className="text-sm text-rose-300">{view.errors.join(" · ")}</p>}
-            <div className="min-h-0 flex-1">
-              <DataGrid columns={view.columns} rows={view.rows} highlights={view.highlights} newColumns={view.newColumns} />
+            {view.chart && !chartHidden && <ChartPanel key={pulse} view={view} onClose={() => setChartHidden(true)} />}
+            <div className="relative min-h-0 flex-1">
+              <DataGrid
+                columns={view.columns}
+                rows={view.rows}
+                highlights={view.highlights}
+                newColumns={view.newColumns}
+                focusColumn={focus}
+                pulse={pulse}
+              />
+              <AnimatePresence>
+                {toast && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, x: "-50%" }}
+                    animate={{ opacity: 1, y: 0, x: "-50%" }}
+                    exit={{ opacity: 0, y: 10, x: "-50%" }}
+                    className="pointer-events-none absolute bottom-6 left-1/2 z-20 rounded-full border border-accent/40 bg-ink/90 px-4 py-2 text-sm font-medium text-accent-2 shadow-xl backdrop-blur"
+                  >
+                    {toast}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </section>
           <aside className="flex w-[420px] shrink-0 flex-col rounded-2xl border border-line bg-panel p-4">

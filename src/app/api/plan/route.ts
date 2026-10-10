@@ -55,6 +55,7 @@ Veriyi GÖRMEZSİN; sadece şemayı, örnek değerleri ve mevcut işlem listesin
   fonksiyonlar: ROUND(x, n), ABS(x), IF(koşul, a, b), MIN, MAX, MONTH([Tarih]) → "Kasım", QUARTER([Tarih]) → "Ç4", YEAR, WEEKDAY.
   Yüzde sütunları 0-100 arası olsun ve adı "(%)" ile bitsin (ör. "Kâr Marjı (%)" = ROUND([Kâr (₺)] / [Ciro (₺)] * 100, 1)).
 - highlight: koşula uyan satırları boyar (column null = tüm satır, değilse sadece o hücre). Kırmızı=kötü, yeşil=iyi, sarı=dikkat.
+  Renklendirme isteğinde filtre EKLEME; kullanıcı sadece boyamak istiyor, diğer satırlar görünür kalmalı.
 - group: özet tablo. Metrik sütun adları otomatik oluşur: sum → "Toplam <ad> (₺)", avg → "Ortalama <ad> ...", count → "Satır Sayısı", rate → "<ad> Oranı (%)" (Evet/Hayır sütunlarında Evet oranı).
   Group'tan sonraki sort/highlight/add_column bu YENİ sütun adlarını kullanmalı (ör. "Toplam Ciro (₺)").
 - lookup: başka sayfadan anahtar sütunla değer getirir (birden çok eşleşme toplanır). Örn. temsilci hedefi: group by "Satış Temsilcisi" → lookup Temsilciler/"Satış Temsilcisi"/"Yıllık Hedef (₺)" → add_column "Hedef Gerçekleşme (%)".

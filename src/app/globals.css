@@ -27,3 +27,7 @@ body {
   body { background: white; color: #111; }
   .no-print { display: none !important; }
 }
+
+@keyframes gridIn { from { opacity: .35; } to { opacity: 1; } }
+@keyframes cellIn { from { opacity: 0; transform: translateX(14px); background: rgb(34 197 94 / .35); } to { opacity: 1; transform: none; } }
+@keyframes headPulse { 0% { background: rgb(34 197 94 / .45); color: white; } 100% { background: transparent; } }
