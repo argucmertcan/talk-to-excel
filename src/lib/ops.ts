@@ -81,6 +81,12 @@ export function matches(row: Row, c: Condition, cols: Column[]): boolean {
     const m = MONTHS_TR.indexOf(normalizeTr(c.value));
     if (m >= 0) return (v.getMonth() === m) === (c.operator === "=");
   }
+  // MONTH() ay adı üretir; model "Ay = 11" derse 11 → "Kasım"
+  if (typeof v === "string" && MONTH_ORDER.includes(v) && /^\d{1,2}$/.test(c.value.trim())) {
+    const name = MONTH_ORDER[Number(c.value) - 1];
+    if (c.operator === "=") return v === name;
+    if (c.operator === "!=") return v !== name;
+  }
   const target = coerce(c.value, col);
   if (typeof v === "string" && typeof target === "string") {
     const eq = normalizeTr(v) === normalizeTr(target);

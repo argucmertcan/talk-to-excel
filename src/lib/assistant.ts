@@ -52,10 +52,15 @@ export async function runCommand(opts: {
   let steps = next(opts.steps, p);
   let view = applyOps(wb, sheet, rows, steps.flat());
   let retried = false;
-  if (view.errors.length && (p.mode === "append" || p.mode === "replace")) {
+  // Hata ya da boş sonuç: modele geri bildirip planı bir kez yeniden kurdur
+  const empty = view.rows.length === 0 && rows.length > 0;
+  if ((view.errors.length || empty) && (p.mode === "append" || p.mode === "replace")) {
     retried = true;
+    const problem = view.errors.length
+      ? `uygulanamadı: ${view.errors.join("; ")}`
+      : "0 satır döndürdü; filtre değerlerini bağlamdaki degerler/ornek listelerindeki yazımla ve doğru sütunla kontrol et";
     const fix = await plan(
-      `HATA: "${message}" isteği için ürettiğin plan uygulanamadı: ${view.errors.join("; ")}. Aynı isteği düzeltilmiş planla yeniden üret.`,
+      `HATA: "${message}" isteği için ürettiğin plan ${problem}. Aynı isteği düzeltilmiş planla yeniden üret.`,
       opts.steps,
       history,
     );

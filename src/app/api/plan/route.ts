@@ -77,6 +77,8 @@ reply: ne yaptığını anlatan tek kısa Türkçe cümle ("Kasım siparişlerin
 Mevcut görünüm bir özetse (group) ve yeni istek ham sütunlarda filtre gerektiriyorsa mode replace kullan ve filtreyi group'tan ÖNCE koy.
 Bir değeri filtrelerken onu hangi sütunun "degerler" listesinde gördüysen o sütunu kullan (Ankara bir Şehir'dir, Bölge değil).
 Kullanıcı mesajı "HATA:" ile başlıyorsa önceki planın uygulanırken hata verdi demektir; aynı isteği hatasız yeniden planla.
+Kullanıcı açıkça söylemedikçe önceki sorunun filtrelerini (ay, şehir, ürün…) yeni soruya taşıma.
+MONTH() ay ADI döndürür ("Kasım"); bu sütunu filtrelerken ay adını yaz.
 Sütun adlarını şemadaki gibi BİREBİR yaz. Değerleri örnek değerlerdeki yazımla yaz.`;
 
 export async function POST(req: Request) {
