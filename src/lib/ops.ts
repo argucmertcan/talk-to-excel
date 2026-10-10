@@ -131,7 +131,8 @@ export function applyOps(wb: Workbook, sheet: Sheet, baseRows: Row[], ops: Op[])
   const hl: Op[] = [];
   const newColumns = new Set<string>();
   const errors: string[] = [];
-  let chart: View["chart"] = null;
+  let chart = null as View["chart"];
+  const charts: Extract<Op, { type: "chart" }>[] = [];
   let grouped = false;
   const has = (c: string) => columns.some((x) => x.name === c);
   const need = (cs: string[]) => {
@@ -250,19 +251,23 @@ export function applyOps(wb: Workbook, sheet: Sheet, baseRows: Row[], ops: Op[])
           rows = rows.map((r) => (r[op.column] === op.find ? { ...r, [op.column]: op.replace } : r));
           break;
         case "chart":
-          need([op.x, op.y]);
-          // Aynı x eksenli ardışık grafik istekleri tek grafikte seri olarak birleşir
-          {
-            const prev = chart as View["chart"];
-            chart = prev && prev.x === op.x && op.chart !== "pie"
-              ? { ...prev, ys: [...new Set([...prev.ys, op.y])] }
-              : { chart: op.chart, x: op.x, ys: [op.y], title: op.title };
-          }
+          // Grafik her zaman son görünümü anlatır; sıradan bağımsız olarak döngüden sonra işlenir
+          charts.push(op);
           break;
       }
     } catch (e) {
       errors.push((e as Error).message);
     }
+  }
+
+  for (const op of charts) {
+    const miss = [op.x, op.y].filter((c) => !has(c));
+    if (miss.length) { errors.push(`Grafik için sütun bulunamadı: ${miss.join(", ")}`); continue; }
+    // Aynı x eksenli grafik istekleri tek grafikte seri olarak birleşir
+    const prev: View["chart"] = chart;
+    chart = prev && prev.x === op.x && op.chart !== "pie"
+      ? { ...prev, ys: [...new Set([...prev.ys, op.y])] }
+      : { chart: op.chart, x: op.x, ys: [op.y], title: op.title };
   }
 
   const highlights = new Map<string, Highlight[]>();
