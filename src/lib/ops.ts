@@ -298,7 +298,7 @@ export function describeOp(op: Op): string {
     case "sort": return `Sırala: ${op.column} ${op.direction === "desc" ? "↓" : "↑"}`;
     case "add_column": return `+ ${op.name}`;
     case "highlight": return `Renk: ${op.conditions.map(cond).join(" ve ")} → ${COLOR_TR[op.color]}`;
-    case "group": return `Özet: ${op.by.join(", ")} bazında`;
+    case "group": return op.by.length ? `Özet: ${op.by.join(", ")} bazında` : "Özet: genel toplam";
     case "lookup": return `Ekle: ${op.column} (${op.sheet})`;
     case "limit": return `İlk ${op.count}`;
     case "hide_columns": return `Gizle: ${op.columns.join(", ")}`;

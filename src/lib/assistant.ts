@@ -1,6 +1,7 @@
 // Bir sohbet komutunun uçtan uca akışı: plan → uygula → (hata varsa bir kez düzelt) → (soruysa) cevap.
 // Hem arayüz hem de terminal test aracı bunu kullanır.
-import { applyOps, type Op, type View } from "./ops";
+import { applyOps, type Condition, type Op, type View } from "./ops";
+import { normalizeTr } from "./profile";
 import { buildContext, resultPreview } from "./context";
 import type { Row, Sheet, Workbook } from "./types";
 
@@ -39,7 +40,17 @@ export async function runCommand(opts: {
     if (res.error) throw new Error(res.error);
     return res;
   };
+  // Yeni soruda (replace) önceki adımlardan kopyalanmış ve kullanıcının hiç anmadığı filtreleri at
+  const dropCarried = (ops: Op[], prev: Op[][]) => {
+    const old = new Set(prev.flat().flatMap((o) => (o.type === "filter" ? o.conditions.map((c) => JSON.stringify(c)) : [])));
+    const msg = normalizeTr(message);
+    const mentioned = (c: Condition) => [c.value, c.value2 ?? ""].some((v) => v && msg.includes(normalizeTr(v)));
+    return ops
+      .map((o) => (o.type === "filter" ? { ...o, conditions: o.conditions.filter((c) => !old.has(JSON.stringify(c)) || mentioned(c)) } : o))
+      .filter((o) => o.type !== "filter" || o.conditions.length > 0);
+  };
   const next = (steps: Op[][], p: Plan) => {
+    if (p.mode === "replace") p = { ...p, ops: dropCarried(p.ops, steps) };
     let s = steps;
     if (p.mode === "replace" || p.mode === "reset") s = [];
     if (p.mode === "undo") s = s.slice(0, -1);
