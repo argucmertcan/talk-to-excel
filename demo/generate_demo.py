@@ -131,7 +131,7 @@ for month in range(1, 13):
         corporate = random.random() < 0.18
         qty = random.choices([1, 2, 3, 4, 5], weights=[70, 16, 7, 4, 3])[0]
         if corporate:
-            qty = random.choice([2, 3, 5, 8, 10, 12, 15])
+            qty = random.choice([2, 2, 3, 3, 4, 5, 6])
 
         # İndirim: normal ay %0–15, Kasım %10–30; Beyaz Eşya Kasım kampanyasında %35–45 uçlar
         if month == 11:

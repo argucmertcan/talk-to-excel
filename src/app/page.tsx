@@ -1,21 +1,36 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Uploader } from "@/components/Uploader";
 import { DataGrid } from "@/components/DataGrid";
 import { readWorkbook } from "@/lib/workbook";
 import { formatNumber } from "@/lib/format";
+import { profileWorkbook } from "@/lib/profile";
+import { InsightPanel, type InsightState } from "@/components/InsightPanel";
 import type { Workbook } from "@/lib/types";
 
 export default function Home() {
   const [wb, setWb] = useState<Workbook | null>(null);
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [insights, setInsights] = useState<InsightState>({});
+  const profile = useMemo(() => (wb ? profileWorkbook(wb) : null), [wb]);
 
   async function onFile(f: File) {
     setLoading(true);
     try {
-      setWb(await readWorkbook(f));
-      setActive(0);
+      const book = await readWorkbook(f);
+      const p = profileWorkbook(book);
+      setWb(book);
+      setActive(book.sheets.findIndex((s) => s.name === p.sheet));
+      setInsights({});
+      fetch("/api/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: book.fileName, profile: p }),
+      })
+        .then((r) => r.json())
+        .then((d) => setInsights(d.error ? { error: d.error } : d))
+        .catch((e) => setInsights({ error: String(e) }));
     } finally {
       setLoading(false);
     }
@@ -51,9 +66,20 @@ export default function Home() {
           </>
         )}
       </header>
-      <section className="min-h-0 flex-1 p-4">
-        {sheet ? <DataGrid columns={sheet.columns} rows={sheet.rows} /> : <Uploader onFile={onFile} loading={loading} />}
-      </section>
+      {sheet && profile ? (
+        <div className="flex min-h-0 flex-1 gap-4 p-4">
+          <section className="min-w-0 flex-1">
+            <DataGrid columns={sheet.columns} rows={sheet.rows} />
+          </section>
+          <aside className="scroll-thin w-[400px] shrink-0 overflow-y-auto rounded-2xl border border-line bg-panel p-4">
+            <InsightPanel profile={profile} state={insights} />
+          </aside>
+        </div>
+      ) : (
+        <section className="min-h-0 flex-1 p-4">
+          <Uploader onFile={onFile} loading={loading} />
+        </section>
+      )}
     </main>
   );
 }
