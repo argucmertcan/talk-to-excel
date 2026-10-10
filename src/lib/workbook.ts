@@ -16,10 +16,24 @@ function inferKind(name: string, type: ColumnType): Column["kind"] {
   return "plain";
 }
 
+// SheetJS'in cellDates çevirisi yerel saat dilimine göre kayıyor (İstanbul'da 56 sn geri,
+// 01.01.2025 → 31.12.2024 23:59). Tarih biçimli hücreleri seri numarasından yerel tarihe kendimiz çeviriyoruz.
+function fixDates(ws: XLSX.WorkSheet) {
+  for (const addr of Object.keys(ws)) {
+    if (addr[0] === "!") continue;
+    const cell = ws[addr] as XLSX.CellObject;
+    if (cell.t === "n" && cell.z && XLSX.SSF.is_date(cell.z)) {
+      const p = XLSX.SSF.parse_date_code(cell.v as number);
+      ws[addr] = { t: "d", v: new Date(p.y, p.m - 1, p.d, p.H, p.M, Math.round(p.S)) };
+    }
+  }
+}
+
 export async function readWorkbook(file: File): Promise<Workbook> {
   const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const wb = XLSX.read(buf, { type: "array", cellNF: true });
   const sheets: Sheet[] = wb.SheetNames.map((name) => {
+    fixDates(wb.Sheets[name]);
     const raw = XLSX.utils.sheet_to_json<Row>(wb.Sheets[name], { defval: null, raw: true });
     const names = raw.length ? Object.keys(raw[0]) : [];
     const columns: Column[] = names.map((n) => {
