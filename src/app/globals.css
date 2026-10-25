@@ -10,10 +10,30 @@
   --color-muted: #8a9bb8;
   --color-accent: #22c55e;
   --color-accent-2: #4ade80;
+
+  /* Tailwind varsayılan yazı boyutları ×1,05 (satır yüksekliği oranları aynı) */
+  --text-xs: 0.7875rem;
+  --text-xs--line-height: calc(1 / 0.75);
+  --text-sm: 0.91875rem;
+  --text-sm--line-height: calc(1.25 / 0.875);
+  --text-base: 1.05rem;
+  --text-base--line-height: calc(1.5 / 1);
+  --text-lg: 1.18125rem;
+  --text-lg--line-height: calc(1.75 / 1.125);
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: calc(1.75 / 1.25);
+  --text-2xl: 1.575rem;
+  --text-2xl--line-height: calc(2 / 1.5);
+  --text-3xl: 1.96875rem;
+  --text-3xl--line-height: calc(2.25 / 1.875);
+  --text-4xl: 2.3625rem;
+  --text-4xl--line-height: calc(2.5 / 2.25);
 }
 
 html, body { height: 100%; }
 body {
+  /* boyutu belirtilmeyen yazılar (16px) da ×1,05 */
+  font-size: 1.05rem;
   background: var(--color-ink);
   color: #e6edf7;
   font-family: var(--font-inter), system-ui, sans-serif;

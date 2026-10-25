@@ -20,7 +20,7 @@ const OVERSCAN = 12;
 const NUM_W = 64;
 
 export function colWidth(c: Column) {
-  const base = Math.max(c.name.length * 8.5 + 32, 90);
+  const base = Math.max(c.name.length * 8.9 + 32, 90);
   if (c.kind === "currency") return Math.max(base, 150);
   if (c.type === "date") return Math.max(base, 110);
   if (c.type === "text") return Math.max(base, 140);
@@ -83,7 +83,7 @@ export function DataGrid({
         className="scroll-thin relative h-full overflow-auto rounded-2xl border border-line bg-panel"
       >
         <div key={pulse} style={{ width: total, height: (rows.length + 1) * ROW_H }} className="relative animate-[gridIn_.35s_ease-out]">
-          <div className="sticky top-0 z-10 flex border-b border-line bg-panel-2 text-[13px] font-semibold text-muted" style={{ height: ROW_H, width: total }}>
+          <div className="sticky top-0 z-10 flex border-b border-line bg-panel-2 text-[13.65px] font-semibold text-muted" style={{ height: ROW_H, width: total }}>
             <div className="sticky left-0 z-10 flex shrink-0 items-center justify-center bg-panel-2" style={{ width: NUM_W }}>#</div>
             {columns.map((c, i) => {
               const isNew = newColumns?.has(c.name);
@@ -107,10 +107,10 @@ export function DataGrid({
             return (
               <div
                 key={String(r[ID] ?? i)}
-                className={`absolute left-0 flex border-b border-line/50 text-[13px] transition-colors duration-700 hover:bg-white/[0.03] ${rowColor ? ROW_BG[rowColor] : ""}`}
+                className={`absolute left-0 flex border-b border-line/50 text-[13.65px] transition-colors duration-700 hover:bg-white/[0.03] ${rowColor ? ROW_BG[rowColor] : ""}`}
                 style={{ top: (i + 1) * ROW_H, height: ROW_H, width: total }}
               >
-                <div className="sticky left-0 flex shrink-0 items-center justify-center bg-panel font-mono text-[11px] text-muted" style={{ width: NUM_W }}>
+                <div className="sticky left-0 flex shrink-0 items-center justify-center bg-panel font-mono text-[11.55px] text-muted" style={{ width: NUM_W }}>
                   {rowColor && <span className={`absolute left-0 top-0 h-full w-1 ${BAR[rowColor]}`} />}
                   {i + 1}
                 </div>

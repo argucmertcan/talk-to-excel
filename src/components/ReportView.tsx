@@ -24,7 +24,7 @@ export function ReportView(props: {
 }) {
   const { report, kpis, monthly, regions, view, steps } = props;
   const today = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long" }).format(new Date());
-  const tick = { fill: "#475569", fontSize: 11 };
+  const tick = { fill: "#475569", fontSize: 11.55 };
 
   return (
     <div className="report-overlay fixed inset-0 z-50 overflow-y-auto bg-ink/80 backdrop-blur-sm">
@@ -78,7 +78,7 @@ export function ReportView(props: {
           <>
             <section className="mt-8">
               <h2 className="mb-2 text-sm font-bold uppercase tracking-wider text-emerald-600">Yönetici Özeti</h2>
-              <p className="text-[15px] leading-relaxed">{report.executiveSummary}</p>
+              <p className="text-[15.75px] leading-relaxed">{report.executiveSummary}</p>
             </section>
 
             <section className="mt-8 grid grid-cols-2 gap-6">
@@ -90,7 +90,7 @@ export function ReportView(props: {
                       <CartesianGrid stroke="#e2e8f0" vertical={false} />
                       <XAxis dataKey="ay" tick={tick} />
                       <YAxis tick={tick} tickFormatter={(v) => formatCompact(v)} width={48} />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Legend wrapperStyle={{ fontSize: 11.55 }} />
                       <Line dataKey="ciro" name="Ciro" stroke="#10b981" strokeWidth={2.5} dot={false} isAnimationActive={false} />
                       <Line dataKey="kar" name="Kâr" stroke="#0ea5e9" strokeWidth={2.5} dot={false} isAnimationActive={false} />
                     </LineChart>
@@ -114,10 +114,10 @@ export function ReportView(props: {
             {report.sections.map((s) => (
               <section key={s.heading} className="mt-8 break-inside-avoid">
                 <h2 className="mb-1 text-lg font-bold text-slate-900">{s.heading}</h2>
-                <p className="text-[15px] leading-relaxed text-slate-700">{s.body}</p>
+                <p className="text-[15.75px] leading-relaxed text-slate-700">{s.body}</p>
                 <ul className="mt-2 space-y-1">
                   {s.bullets.map((b) => (
-                    <li key={b} className="flex gap-2 text-[14px] text-slate-700"><span className="text-emerald-500">▸</span>{b}</li>
+                    <li key={b} className="flex gap-2 text-[14.7px] text-slate-700"><span className="text-emerald-500">▸</span>{b}</li>
                   ))}
                 </ul>
               </section>
@@ -127,7 +127,7 @@ export function ReportView(props: {
               <section className="mt-8 break-inside-avoid">
                 <h2 className="mb-1 text-lg font-bold text-slate-900">Sohbette incelenen görünüm</h2>
                 <p className="mb-2 text-xs text-slate-500">{steps.join(" → ")}</p>
-                <table className="w-full text-left text-[12px]">
+                <table className="w-full text-left text-[12.6px]">
                   <thead><tr>{view.columns.slice(0, 7).map((c) => <th key={c.name} className="border-b border-slate-200 py-1 pr-3 font-semibold">{c.name}</th>)}</tr></thead>
                   <tbody>
                     {view.rows.slice(0, 12).map((r, i) => (
@@ -142,10 +142,10 @@ export function ReportView(props: {
               <h2 className="mb-3 text-lg font-bold text-slate-900">Öneriler</h2>
               <ol className="space-y-2">
                 {report.recommendations.map((r, i) => (
-                  <li key={r.action} className="flex gap-3 text-[14px]">
+                  <li key={r.action} className="flex gap-3 text-[14.7px]">
                     <span className="font-mono font-bold text-emerald-600">{i + 1}.</span>
                     <div className="flex-1"><b>{r.action}</b> <span className="text-slate-600">— {r.why}</span></div>
-                    <span className={`h-fit shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${PRIORITY[r.priority]}`}>{r.priority}</span>
+                    <span className={`h-fit shrink-0 rounded-full px-2 py-0.5 text-[11.55px] font-semibold ${PRIORITY[r.priority]}`}>{r.priority}</span>
                   </li>
                 ))}
               </ol>

@@ -45,7 +45,7 @@ export function InsightPanel({ profile, state, onAsk }: { profile: Profile; stat
       {profile.quality.length > 0 && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
           <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-amber-300">Veri kalitesi</div>
-          <ul className="space-y-1 text-[13px] text-amber-100/90">
+          <ul className="space-y-1 text-[13.65px] text-amber-100/90">
             {profile.quality.map((q) => (
               <li key={q.message}>• {q.message}</li>
             ))}
@@ -57,7 +57,7 @@ export function InsightPanel({ profile, state, onAsk }: { profile: Profile; stat
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold">Yapay zekâ içgörüleri</h3>
           {state.ms !== undefined && (
-            <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[11px] text-accent-2">
+            <span className="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[11.55px] text-accent-2">
               Groq · {(state.ms / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sn
             </span>
           )}
@@ -70,7 +70,7 @@ export function InsightPanel({ profile, state, onAsk }: { profile: Profile; stat
             ))}
           </div>
         )}
-        {state.summary && <p className="mb-3 text-[13px] leading-relaxed text-muted">{state.summary}</p>}
+        {state.summary && <p className="mb-3 text-[13.65px] leading-relaxed text-muted">{state.summary}</p>}
         <div className="space-y-2">
           {state.insights?.map((ins, i) => (
             <motion.div
@@ -84,7 +84,7 @@ export function InsightPanel({ profile, state, onAsk }: { profile: Profile; stat
                 <span className={`h-2 w-2 shrink-0 rounded-full ${TONE[ins.tone].dot}`} />
                 {ins.title}
               </div>
-              <p className="mt-1 text-[13px] leading-relaxed text-slate-300">{ins.detail}</p>
+              <p className="mt-1 text-[13.65px] leading-relaxed text-slate-300">{ins.detail}</p>
               {onAsk && (
                 <button onClick={() => onAsk(ins.question)} className="mt-2 text-xs text-accent-2 hover:underline">
                   ↳ {ins.question}

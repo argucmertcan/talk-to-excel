@@ -17,10 +17,10 @@ export function ChartPanel({ view, onClose }: { view: View; onClose: () => void 
     ...Object.fromEntries(ys.map((y) => [y, typeof r[y] === "number" ? r[y] : 0])),
   }));
   const kind = cols[ys[0]]?.kind;
-  const tick = { fill: "#8a9bb8", fontSize: 12 };
+  const tick = { fill: "#8a9bb8", fontSize: 12.6 };
   const tooltip = (
     <Tooltip
-      contentStyle={{ background: "#16223a", border: "1px solid #22314d", borderRadius: 12 }}
+      contentStyle={{ background: "#16223a", border: "1px solid #22314d", borderRadius: 12, fontSize: 16.8 }}
       formatter={(v: number, name: string) => [formatCell(v, cols[name]), name]}
     />
   );
@@ -51,7 +51,7 @@ export function ChartPanel({ view, onClose }: { view: View; onClose: () => void 
               <XAxis dataKey="x" tick={tick} />
               <YAxis tick={tick} tickFormatter={(v) => formatCompact(v, kind)} width={80} />
               {tooltip}
-              {ys.length > 1 && <Legend />}
+              {ys.length > 1 && <Legend wrapperStyle={{ fontSize: 16.8 }} />}
               {ys.map((y, i) => (
                 <Line key={y} type="monotone" dataKey={y} stroke={COLORS[i]} strokeWidth={3} dot={{ r: 4 }} animationDuration={1200} />
               ))}
@@ -62,7 +62,7 @@ export function ChartPanel({ view, onClose }: { view: View; onClose: () => void 
               <XAxis dataKey="x" tick={tick} interval={0} angle={data.length > 8 ? -20 : 0} textAnchor={data.length > 8 ? "end" : "middle"} height={data.length > 8 ? 60 : 30} />
               <YAxis tick={tick} tickFormatter={(v) => formatCompact(v, kind)} width={80} />
               {tooltip}
-              {ys.length > 1 && <Legend />}
+              {ys.length > 1 && <Legend wrapperStyle={{ fontSize: 16.8 }} />}
               {ys.map((y, i) => (
                 <Bar key={y} dataKey={y} fill={COLORS[i]} radius={[6, 6, 0, 0]} animationDuration={900} />
               ))}
