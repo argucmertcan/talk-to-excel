@@ -82,11 +82,11 @@ export function ChatPanel({ messages, busy, onSend }: { messages: ChatMessage[];
               {m.ops && m.ops.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {m.ops.map((o) => (
-                    <span key={o} className="rounded-md bg-ink px-1.5 py-0.5 font-mono text-[11px] text-accent-2">{o}</span>
+                    <span key={o} className="rounded-md bg-ink px-1.5 py-0.5 font-mono text-[11.55px] text-accent-2">{o}</span>
                   ))}
                 </div>
               )}
-              {m.ms !== undefined && <div className="mt-1 text-right font-mono text-[10px] text-muted">{(m.ms / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} sn</div>}
+              {m.ms !== undefined && <div className="mt-1 text-right font-mono text-[10.5px] text-muted">{(m.ms / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 })} sn</div>}
             </div>
           ),
         )}

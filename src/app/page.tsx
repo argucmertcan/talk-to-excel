@@ -170,7 +170,7 @@ export default function Home() {
     <>
     <main className="app-shell flex h-screen flex-col">
       <header className="flex h-16 shrink-0 items-center gap-4 border-b border-line px-6">
-        <div className="flex shrink-0 items-center gap-2 text-lg font-semibold md:text-[1.6875rem]">
+        <div className="flex shrink-0 items-center gap-2 text-lg font-semibold md:text-[1.771875rem]">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink">X</span>
           Talk to Excel
         </div>
