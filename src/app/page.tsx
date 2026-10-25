@@ -284,6 +284,7 @@ export default function Home() {
           <Uploader onFile={onFile} loading={loading} />
         </section>
       )}
+      <footer className="shrink-0 py-2 text-center text-xs text-muted">© 2026 Talk to Excel</footer>
     </main>
     {reportOpen && wb && sheet && profile && (
       <ReportView
