@@ -172,7 +172,10 @@ export default function Home() {
       <header className="flex h-16 shrink-0 items-center gap-4 border-b border-line px-6">
         <div className="flex shrink-0 items-center gap-2 text-lg font-semibold md:text-[1.771875rem]">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink">X</span>
-          Talk to Excel
+          <div className="flex flex-col gap-0.5">
+            <span className="leading-none">Talk to Excel</span>
+            <span className="text-[0.7rem] font-normal leading-none text-muted">Beta</span>
+          </div>
         </div>
         {wb && (
           <>
