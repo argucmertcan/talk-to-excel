@@ -37,7 +37,7 @@ export function Uploader({ onFile, loading }: { onFile: (f: File) => void; loadi
         </div>
         <h2 className="text-2xl font-semibold">Excel dosyanı buraya bırak</h2>
         <p className="mt-2 text-muted">.xlsx, .xls veya .csv — dosya tarayıcından çıkmaz</p>
-        <div className="mt-8 inline-flex rounded-xl bg-accent px-6 py-3 font-medium text-ink">
+        <div className="mt-8 inline-flex rounded-xl bg-blue-500 px-6 py-3 font-medium text-white transition hover:bg-blue-400">
           {loading ? "Okunuyor…" : "Dosya seç"}
         </div>
         <button onClick={loadDemo} className="mt-4 block w-full text-sm text-muted underline-offset-4 hover:text-white hover:underline">
